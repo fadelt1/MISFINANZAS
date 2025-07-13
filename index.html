@@ -9,13 +9,13 @@
     href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Poppins:wght@400;600&display=swap"
     rel="stylesheet"
   />
-  <!-- TailwindCSS para el gráfico Themrsami -->
+  <!-- TailwindCSS para el componente gráfico -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Reset */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Light / Dark themes */
+    /* Temas */
     body.light { background: #f5f7fa; color: #2c3e50; }
     body.dark  { background: #0d1117; color: #c9d1d9; }
 
@@ -38,7 +38,7 @@
       margin-left: 20px; cursor: pointer; font-size: 1.2rem;
     }
 
-    /* Burger toggle (Uiverse by Cevorob) */
+    /* Burger (Uiverse by Cevorob) */
     .burger {
       position: fixed; top: 16px; left: 20px;
       width: 40px; height: 30px; cursor: pointer; z-index: 950;
@@ -96,7 +96,7 @@
       opacity: 1;
     }
 
-    /* Main + layout */
+    /* Main layout */
     main {
       margin-top: 60px; margin-left: 0;
       padding: 20px; transition: margin-left 0.3s ease;
@@ -107,7 +107,7 @@
       justify-content: center; margin-bottom: 30px;
     }
 
-    /* Finmate Cards (original) */
+    /* Finmate Cards (diseño original) */
     .finmate-card {
       background: linear-gradient(145deg,#1a1a1f,#0e0e10);
       border: 1px solid rgba(255,255,255,0.05);
@@ -125,14 +125,14 @@
     }
     .finmate-card-summary {
       display: flex; justify-content: space-between;
+      margin-top: 15px;
     }
-    .finmate-card-green {
-      color: #4ade80; font-size: 0.9rem; font-weight: bold;
-    }
-    .finmate-card-red {
-      color: #f87171; font-size: 0.9rem; font-weight: bold;
-    }
+    .finmate-card-green { color: #4ade80; font-size: 0.9rem; font-weight: bold; }
+    .finmate-card-red   { color: #f87171; font-size: 0.9rem; font-weight: bold; }
     .finmate-card-limit { margin-top: 15px; }
+
+    /* Componente gráfico “Egresos Diarios” */
+    .group { width: 300px; }
 
     /* Modal */
     .modal-overlay {
@@ -179,7 +179,7 @@
     <div class="dark-toggle" id="darkToggle" title="Modo claro/oscuro">🌓</div>
   </header>
 
-  <!-- Burger -->
+  <!-- Burger Toggle -->
   <label class="burger">
     <input type="checkbox" id="burgerToggle" />
     <span></span><span></span><span></span>
@@ -229,29 +229,24 @@
       </div>
 
       <!-- Egresos Diarios (Themrsami) -->
-      <div class="group relative flex w-80 flex-col rounded-xl bg-slate-950 p-4
-                  shadow-2xl transition-all duration-300 hover:scale-[1.02]
-                  hover:shadow-indigo-500/20">
-        <div class="absolute inset-0 rounded-xl bg-gradient-to-r
-                    from-indigo-500 via-purple-500 to-pink-500
-                    opacity-20 blur-sm transition-opacity duration-300
-                    group-hover:opacity-30"></div>
+      <div class="group relative flex flex-col rounded-xl bg-slate-950 p-4 shadow-2xl
+                  transition-all duration-300 hover:scale-[1.02] hover:shadow-indigo-500/20">
+        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+                    opacity-20 blur-sm transition-opacity duration-300 group-hover:opacity-30"></div>
         <div class="absolute inset-px rounded-[11px] bg-slate-950"></div>
         <div class="relative">
           <div class="mb-4 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="flex h-8 w-8 items-center justify-center rounded-lg
                           bg-gradient-to-br from-indigo-500 to-purple-500">
-                <svg class="h-4 w-4 text-white" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
               <h3 class="text-sm font-semibold text-white">Egresos Diarios</h3>
             </div>
-            <span class="flex items-center gap-1 rounded-full bg-emerald-500/10
-                         px-2 py-1 text-xs font-medium text-emerald-500">
+            <span class="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-500">
               <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Live
             </span>
           </div>
@@ -266,28 +261,19 @@
             </div>
           </div>
           <div class="mb-4 h-24 w-full overflow-hidden rounded-lg bg-slate-900/50 p-3">
-            <div class="flex h-full w-full items-end justify-between gap-1"
-                 id="egChartBars"><!-- barras dinamicas --></div>
+            <div class="flex h-full w-full items-end justify-between gap-1" id="egChartBars"></div>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="text-xs font-medium text-slate-400">Últimos 7 días</span>
-              <svg class="h-4 w-4 text-slate-400" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M19 9l-7 7-7-7" />
+              <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
-            </div>  
-            <button id="openModal" class="flex items-center gap-1 rounded-lg
-                              bg-gradient-to-r from-indigo-500 to-purple-500
-                              px-3 py-1 text-xs font-medium text-white
-                              transition-all duration-300 hover:from-indigo-600
-                              hover:to-purple-600">
+            </div>
+            <button id="openModal" class="flex items-center gap-1 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-3 py-1 text-xs font-medium text-white transition-all duration-300 hover:from-indigo-600 hover:to-purple-600">
               Ver Detalles
-              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24"
-                   stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M9 5l7 7-7 7" />
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
@@ -303,11 +289,11 @@
         <p class="finmate-card-label" style="font-size:1rem;color:#f5f5f5;">
           Detalles de Egresos
         </p>
-        <button id="closeModal"
-                style="background:transparent;border:none;color:#f5f5f5;
-                       font-size:1.2rem;cursor:pointer;">✖</button>
+        <button id="closeModal" style="background:transparent;border:none;color:#f5f5f5;font-size:1.2rem;cursor:pointer;">
+          ✖
+        </button>
       </div>
-      <div style="max-height:70vh;overflow-y:auto; margin-top:10px;">
+      <div style="max-height:70vh;overflow-y:auto; margin-top:16px;">
         <table class="egresos-table">
           <thead>
             <tr><th>Fecha</th><th>Motivo</th><th>Monto</th></tr>
@@ -319,7 +305,7 @@
   </div>
 
   <script>
-    // Formatea fecha→ "dd/mm/yyyy hh:mm"
+    // Formatea raw → "dd/mm/yyyy hh:mm"
     function formatDateTime(raw) {
       const d = new Date(raw);
       if (isNaN(d)) return raw;
@@ -337,11 +323,11 @@
     const main    = document.getElementById('main');
     burger.addEventListener('change', () => {
       const open = burger.checked;
-      sidebar.style.left    = open ? '0' : '-240px';
-      main.style.marginLeft = open ? '240px' : '0';
+      sidebar.style.left    = open ? '0'    : '-240px';
+      main.style.marginLeft = open ? '240px': '0';
     });
 
-    // Dark mode
+    // Dark mode persistence
     const darkToggle = document.getElementById('darkToggle');
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.body.classList.replace('light','dark');
@@ -349,14 +335,12 @@
     darkToggle.textContent = savedTheme==='dark' ? '☀️' : '🌓';
     darkToggle.addEventListener('click', () => {
       const next = document.body.classList.contains('dark') ? 'light':'dark';
-      document.body.classList.replace(
-        next==='dark'?'light':'dark', next
-      );
+      document.body.classList.replace(next==='dark'?'light':'dark', next);
       localStorage.setItem('theme', next);
       darkToggle.textContent = next==='dark' ? '☀️':'🌓';
     });
 
-    // Modal
+    // Modal control
     const openModal  = document.getElementById('openModal');
     const closeModal = document.getElementById('closeModal');
     const modal      = document.getElementById('modal');
@@ -364,13 +348,13 @@
     openModal.addEventListener('click', () => modal.classList.add('active'));
     closeModal.addEventListener('click', () => modal.classList.remove('active'));
 
-    // Fetch y render
+    // Fetch & render data
     const API_URL = 'https://script.google.com/macros/s/AKfycbwXbvWQJNLwt7ebZGb0NbqJ3uoA3MhYKGg3ggUxJyxrS623gWq-Z3HuJUkNB06GQa7K/exec';
     let egresosList = [];
     fetch(API_URL)
       .then(res => res.ok ? res.json() : Promise.reject(res.status))
       .then(data => {
-        let ingresos=0, egresos=0, spend=0, pay=0;
+        let ingresos = 0, egresos = 0;
         const egPorDia = {};
 
         data.forEach(item => {
@@ -381,42 +365,32 @@
           const raw    = item['Marca temporal'] || '';
           const fecha  = formatDateTime(raw);
 
-          if (tipo==='INGRESO') ingresos += monto;
-          else if (tipo==='EGRESO') {
-            if (cuenta==='UENO CREDITO') spend += monto;
-            else egresos += monto;
-            egPorDia[raw] = (egPorDia[raw]||0) + monto;
+          if (tipo === 'INGRESO') {
+            ingresos += monto;
+          } else if (tipo === 'EGRESO') {
+            if (cuenta !== 'UENO CREDITO') egresos += monto;
+            egPorDia[raw] = (egPorDia[raw] || 0) + monto;
             egresosList.push({ fecha, motivo, monto: monto.toLocaleString() });
           }
         });
 
-        // Actualizar tarjetas
-        document.getElementById('saldoRealAmount').textContent  =
-          `${(ingresos-egresos).toLocaleString()} Gs`;
-        document.getElementById('saldoIngresoText').textContent =
-          `+ ${ingresos.toLocaleString()} Gs`;
-        document.getElementById('saldoEgresoText').textContent =
-          `– ${egresos.toLocaleString()} Gs`;
+        // Actualizar tarjetas Finmate
+        document.getElementById('saldoRealAmount').textContent  = `${(ingresos - egresos).toLocaleString()} Gs`;
+        document.getElementById('saldoIngresoText').textContent = `+ ${ingresos.toLocaleString()} Gs`;
+        document.getElementById('saldoEgresoText').textContent = `– ${egresos.toLocaleString()} Gs`;
+        // crédito no lo dividimos aquí (quedó como diseño original)
 
-        document.getElementById('tarjetaCreditoAmount').textContent =
-          `${(spend-pay).toLocaleString()} Gs`;
-        document.getElementById('tarjetaSpend').textContent =
-          `– ${spend.toLocaleString()} Gs`;
-        document.getElementById('tarjetaPay').textContent =
-          `+ ${pay.toLocaleString()} Gs`;
-
-        // Egresos Diarios gráfico
-        document.getElementById('egTotal').textContent =
-          `${egresos.toLocaleString()} Gs`;
-        const dias = Object.keys(egPorDia)
-                        .sort((a,b)=> new Date(b)-new Date(a))
-                        .slice(0,7);
+        // Gráfico Egresos Diarios
+        document.getElementById('egTotal').textContent = `${egresos.toLocaleString()} Gs`;
+        const dias    = Object.keys(egPorDia)
+                             .sort((a,b)=> new Date(b) - new Date(a))
+                             .slice(0,7);
         const valores = dias.map(d => egPorDia[d]);
-        const max = Math.max(...valores,1);
-        const bars = document.getElementById('egChartBars');
+        const max     = Math.max(...valores,1);
+        const bars    = document.getElementById('egChartBars');
         bars.innerHTML = '';
         valores.forEach(v => {
-          const pct = Math.round(v/max*100);
+          const pct = Math.round(v / max * 100);
           const outer = document.createElement('div');
           outer.className = 'h-[40%] w-3 rounded-sm bg-indigo-500/30';
           const inner = document.createElement('div');
@@ -425,14 +399,14 @@
           outer.appendChild(inner);
           bars.appendChild(outer);
         });
-        document.getElementById('egMayor').textContent =
-          `${Math.max(...valores).toLocaleString()} Gs`;
+        document.getElementById('egMayor').textContent = `${Math.max(...valores).toLocaleString()} Gs`;
 
-        // Modal: ordenar y llenar tabla
-        egresosList.sort((a,b) =>
-          new Date(b.fecha.split(' ')[0].split('/').reverse().join('-'))
-          - new Date(a.fecha.split(' ')[0].split('/').reverse().join('-'))
-        );
+        // Ordenar y preparar lista para modal
+        egresosList.sort((a,b) => {
+          const da = a.fecha.split(' ')[0].split('/').reverse().join('-');
+          const db = b.fecha.split(' ')[0].split('/').reverse().join('-');
+          return new Date(db) - new Date(da);
+        });
         openModal.addEventListener('click', () => {
           bodyTable.innerHTML = '';
           egresosList.forEach(item => {
