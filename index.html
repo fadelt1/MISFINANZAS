@@ -1,119 +1,452 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Control de Finanzas</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard de Finanzas</title>
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Poppins:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <!-- TailwindCSS para el gráfico Themrsami -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Reset */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      color: #333;
-      padding: 20px;
+
+    /* Light / Dark themes */
+    body.light { background: #f5f7fa; color: #2c3e50; }
+    body.dark  { background: #0d1117; color: #c9d1d9; }
+
+    /* Header */
+    header {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 60px; padding: 0 20px;
+      display: flex; align-items: center; justify-content: flex-end;
+      background: inherit; border-bottom: 1px solid rgba(0,0,0,0.1);
+      z-index: 900;
     }
-    h1 {
-      text-align: center;
-      font-size: 32px;
-      margin-bottom: 20px;
-      color: #2c3e50;
+    .user-greet {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.95rem;
     }
-    #resumen {
-      margin-bottom: 20px;
-      font-size: 18px;
-      text-align: center;
-      background: #ffffff;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    .user-greet svg {
+      width: 24px; height: 24px; fill: currentColor;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #e1e1e1;
-      text-align: center;
-    }
-    th {
-      background-color: #ecf0f1;
-      font-weight: 600;
-    }
-    .ingreso {
-      color: green;
-      font-weight: bold;
-    }
-    .egreso {
-      color: red;
-      font-weight: bold;
+    .dark-toggle {
+      margin-left: 20px; cursor: pointer; font-size: 1.2rem;
     }
 
-    @media (max-width: 600px) {
-      h1 { font-size: 24px; }
-      table, th, td { font-size: 14px; }
-      #resumen { font-size: 16px; }
+    /* Burger toggle (Uiverse by Cevorob) */
+    .burger {
+      position: fixed; top: 16px; left: 20px;
+      width: 40px; height: 30px; cursor: pointer; z-index: 950;
+    }
+    .burger input { display: none; }
+    .burger span {
+      position: absolute; height: 4px; width: 100%;
+      background: currentColor; border-radius: 9px;
+      transition: .25s ease-in-out;
+    }
+    .burger span:nth-of-type(1) { top: 0; transform-origin: left center; }
+    .burger span:nth-of-type(2) { top: 50%; transform: translateY(-50%); }
+    .burger span:nth-of-type(3) { top: 100%; transform: translateY(-100%); }
+    .burger input:checked ~ span:nth-of-type(1) {
+      transform: rotate(45deg); top: 0; left: 5px;
+    }
+    .burger input:checked ~ span:nth-of-type(2) {
+      width: 0; opacity: 0;
+    }
+    .burger input:checked ~ span:nth-of-type(3) {
+      transform: rotate(-45deg); top: 28px; left: 5px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed; top: 0; left: -240px;
+      width: 240px; height: 100%;
+      padding: 80px 16px 16px;
+      background: #0d1117; transition: left 0.3s ease;
+      z-index: 800;
+    }
+    .sidebar .input {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .sidebar .value {
+      background: transparent; border: none;
+      color: #c9d1d9; padding: 10px 12px;
+      text-align: left; position: relative;
+      cursor: pointer; border-radius: 4px;
+      font-family: 'Poppins', sans-serif; font-size: 0.9rem;
+    }
+    .sidebar .value:hover,
+    .sidebar .value:focus {
+      background-color: #21262c; outline: none;
+    }
+    .sidebar .value::before {
+      content: "";
+      position: absolute; top: 8px; left: -12px;
+      width: 5px; height: calc(100% - 16px);
+      background-color: #2f81f7; border-radius: 3px;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .sidebar .value:hover::before,
+    .sidebar .value:focus::before {
+      opacity: 1;
+    }
+
+    /* Main + layout */
+    main {
+      margin-top: 60px; margin-left: 0;
+      padding: 20px; transition: margin-left 0.3s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .cards {
+      display: flex; flex-wrap: wrap; gap: 20px;
+      justify-content: center; margin-bottom: 30px;
+    }
+
+    /* Finmate Cards (original) */
+    .finmate-card {
+      background: linear-gradient(145deg,#1a1a1f,#0e0e10);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      color: #fff; font-family: 'Poppins', sans-serif;
+      padding: 25px; width: 300px;
+    }
+    .finmate-card-balance { margin-bottom: 20px; }
+    .finmate-card-label {
+      color: #b0b0b0; font-size: 0.9rem; margin-bottom: 5px;
+    }
+    .finmate-card-amount {
+      color: #f5f5f5; font-size: 1.8rem; font-weight: 600;
+      margin: 0;
+    }
+    .finmate-card-summary {
+      display: flex; justify-content: space-between;
+    }
+    .finmate-card-green {
+      color: #4ade80; font-size: 0.9rem; font-weight: bold;
+    }
+    .finmate-card-red {
+      color: #f87171; font-size: 0.9rem; font-weight: bold;
+    }
+    .finmate-card-limit { margin-top: 15px; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: none;
+      align-items: center; justify-content: center;
+      padding: 20px; z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: linear-gradient(145deg,#1a1a1f,#0e0e10);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      color: #fff; font-family: 'Poppins', sans-serif;
+      padding: 25px; width: 90%; max-width: 800px; max-height: 90vh;
+      overflow-y: auto;
+    }
+    .egresos-table {
+      width: 100%; border-collapse: collapse; margin-top: 10px;
+    }
+    .egresos-table th, .egresos-table td {
+      padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.9rem; color: #f5f5f5;
+    }
+    .egresos-table th {
+      color: #b0b0b0; text-align: left;
+    }
+
+    @media (max-width: 640px) {
+      .cards { flex-direction: column; align-items: center; }
+      .finmate-card, .group { width: 100% !important; }
+      .sidebar { padding: 80px 8px 8px; width: 100%; }
+      header { justify-content: space-between; }
     }
   </style>
 </head>
 <body>
-  <h1>📊 Control de Finanzas Personales</h1>
-  <div id="resumen">Cargando datos financieros...</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Tipo</th>
-        <th>Monto (Gs)</th>
-        <th>Cuenta</th>
-        <th>Motivo</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- Header -->
+  <header>
+    <div class="user-greet">
+      <span>Hola Miguel!</span>
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.209 0 4-1.791 4-4s-1.791-4-4-4-4 1.791-4 4 1.791 4 4 4zm0 2c-2.673 0-8 1.337-8 4v2h16v-2c0-2.663-5.327-4-8-4z"/></svg>
+    </div>
+    <div class="dark-toggle" id="darkToggle" title="Modo claro/oscuro">🌓</div>
+  </header>
+
+  <!-- Burger -->
+  <label class="burger">
+    <input type="checkbox" id="burgerToggle" />
+    <span></span><span></span><span></span>
+  </label>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="input">
+      <button class="value">Ingresos</button>
+      <button class="value">Egresos</button>
+      <button class="value">Reportar Movimientos</button>
+      <button class="value">Ahorros</button>
+      <button class="value">Pagos Fijos</button>
+      <button class="value">Saldos por Cuenta</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main id="main">
+    <div class="cards">
+      <!-- Saldo Disponible -->
+      <div class="finmate-card" id="saldoCard">
+        <div class="finmate-card-balance">
+          <p class="finmate-card-label">💰 Saldo Disponible</p>
+          <p class="finmate-card-amount" id="saldoRealAmount">Calculando...</p>
+        </div>
+        <div class="finmate-card-summary">
+          <p class="finmate-card-green" id="saldoIngresoText">+ 0 Gs</p>
+          <p class="finmate-card-red"   id="saldoEgresoText">– 0 Gs</p>
+        </div>
+      </div>
+
+      <!-- Consumo Tarjeta de Crédito -->
+      <div class="finmate-card" id="creditoCard">
+        <div class="finmate-card-balance">
+          <p class="finmate-card-label">💳 Consumo Tarjeta Crédito</p>
+          <p class="finmate-card-amount" id="tarjetaCreditoAmount">Calculando...</p>
+        </div>
+        <div class="finmate-card-summary">
+          <p class="finmate-card-red"   id="tarjetaSpend">– 0 Gs</p>
+          <p class="finmate-card-green" id="tarjetaPay">+ 0 Gs</p>
+        </div>
+        <div class="finmate-card-limit">
+          <p class="finmate-card-label">Límite de Crédito</p>
+          <p class="finmate-card-amount" id="tarjetaLimitAmount">1 000 000 Gs</p>
+        </div>
+      </div>
+
+      <!-- Egresos Diarios (Themrsami) -->
+      <div class="group relative flex w-80 flex-col rounded-xl bg-slate-950 p-4
+                  shadow-2xl transition-all duration-300 hover:scale-[1.02]
+                  hover:shadow-indigo-500/20">
+        <div class="absolute inset-0 rounded-xl bg-gradient-to-r
+                    from-indigo-500 via-purple-500 to-pink-500
+                    opacity-20 blur-sm transition-opacity duration-300
+                    group-hover:opacity-30"></div>
+        <div class="absolute inset-px rounded-[11px] bg-slate-950"></div>
+        <div class="relative">
+          <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg
+                          bg-gradient-to-br from-indigo-500 to-purple-500">
+                <svg class="h-4 w-4 text-white" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h3 class="text-sm font-semibold text-white">Egresos Diarios</h3>
+            </div>
+            <span class="flex items-center gap-1 rounded-full bg-emerald-500/10
+                         px-2 py-1 text-xs font-medium text-emerald-500">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Live
+            </span>
+          </div>
+          <div class="mb-4 grid grid-cols-2 gap-4">
+            <div class="rounded-lg bg-slate-900/50 p-3">
+              <p class="text-xs font-medium text-slate-400">Total Egresos</p>
+              <p class="text-lg font-semibold text-white" id="egTotal">0 Gs</p>
+            </div>
+            <div class="rounded-lg bg-slate-900/50 p-3">
+              <p class="text-xs font-medium text-slate-400">Mayor Gasto</p>
+              <p class="text-lg font-semibold text-white" id="egMayor">0 Gs</p>
+            </div>
+          </div>
+          <div class="mb-4 h-24 w-full overflow-hidden rounded-lg bg-slate-900/50 p-3">
+            <div class="flex h-full w-full items-end justify-between gap-1"
+                 id="egChartBars"><!-- barras dinamicas --></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-medium text-slate-400">Últimos 7 días</span>
+              <svg class="h-4 w-4 text-slate-400" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>  
+            <button id="openModal" class="flex items-center gap-1 rounded-lg
+                              bg-gradient-to-r from-indigo-500 to-purple-500
+                              px-3 py-1 text-xs font-medium text-white
+                              transition-all duration-300 hover:from-indigo-600
+                              hover:to-purple-600">
+              Ver Detalles
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Detalles -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <p class="finmate-card-label" style="font-size:1rem;color:#f5f5f5;">
+          Detalles de Egresos
+        </p>
+        <button id="closeModal"
+                style="background:transparent;border:none;color:#f5f5f5;
+                       font-size:1.2rem;cursor:pointer;">✖</button>
+      </div>
+      <div style="max-height:70vh;overflow-y:auto; margin-top:10px;">
+        <table class="egresos-table">
+          <thead>
+            <tr><th>Fecha</th><th>Motivo</th><th>Monto</th></tr>
+          </thead>
+          <tbody id="modalTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyEWn5bk1glejfurEQvECNJt3NYpSmDbwjkgRhK6SRJm6BEbJ3a4swG8LvS9YE9qfdT/exec";
+    // Formatea fecha→ "dd/mm/yyyy hh:mm"
+    function formatDateTime(raw) {
+      const d = new Date(raw);
+      if (isNaN(d)) return raw;
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2,'0');
+      const min= String(d.getMinutes()).padStart(2,'0');
+      return `${dd}/${mm}/${yy} ${hh}:${min}`;
+    }
 
+    // Sidebar toggle
+    const burger  = document.getElementById('burgerToggle');
+    const sidebar = document.getElementById('sidebar');
+    const main    = document.getElementById('main');
+    burger.addEventListener('change', () => {
+      const open = burger.checked;
+      sidebar.style.left    = open ? '0' : '-240px';
+      main.style.marginLeft = open ? '240px' : '0';
+    });
+
+    // Dark mode
+    const darkToggle = document.getElementById('darkToggle');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.replace('light','dark');
+    document.body.classList.add(savedTheme);
+    darkToggle.textContent = savedTheme==='dark' ? '☀️' : '🌓';
+    darkToggle.addEventListener('click', () => {
+      const next = document.body.classList.contains('dark') ? 'light':'dark';
+      document.body.classList.replace(
+        next==='dark'?'light':'dark', next
+      );
+      localStorage.setItem('theme', next);
+      darkToggle.textContent = next==='dark' ? '☀️':'🌓';
+    });
+
+    // Modal
+    const openModal  = document.getElementById('openModal');
+    const closeModal = document.getElementById('closeModal');
+    const modal      = document.getElementById('modal');
+    const bodyTable  = document.getElementById('modalTableBody');
+    openModal.addEventListener('click', () => modal.classList.add('active'));
+    closeModal.addEventListener('click', () => modal.classList.remove('active'));
+
+    // Fetch y render
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwXbvWQJNLwt7ebZGb0NbqJ3uoA3MhYKGg3ggUxJyxrS623gWq-Z3HuJUkNB06GQa7K/exec';
+    let egresosList = [];
     fetch(API_URL)
       .then(res => res.ok ? res.json() : Promise.reject(res.status))
       .then(data => {
-        const tbody = document.querySelector("tbody");
-        let ingresos = 0, egresos = 0;
+        let ingresos=0, egresos=0, spend=0, pay=0;
+        const egPorDia = {};
 
         data.forEach(item => {
-          const tipo = item.tipo?.toUpperCase();
-          const monto = parseFloat(item.monto) || 0;
+          const tipo   = (item['TIPO DE MOVIMIENTO']||'').toUpperCase();
+          const monto  = parseFloat(item['MONTO EN GS']) || 0;
+          const cuenta = (item['CUENTA']||'').toUpperCase();
+          const motivo = (item['MOTIVO']||'').toUpperCase();
+          const raw    = item['Marca temporal'] || '';
+          const fecha  = formatDateTime(raw);
 
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${item.fecha || '—'}</td>
-            <td class="${tipo === 'INGRESO' ? 'ingreso' : 'egreso'}">${tipo || '—'}</td>
-            <td>${monto.toLocaleString()}</td>
-            <td>${item.cuenta || '—'}</td>
-            <td>${item.motivo || '—'}</td>
-          `;
-          tbody.appendChild(tr);
-
-          if (tipo === 'INGRESO') ingresos += monto;
-          else if (tipo === 'EGRESO') egresos += monto;
+          if (tipo==='INGRESO') ingresos += monto;
+          else if (tipo==='EGRESO') {
+            if (cuenta==='UENO CREDITO') spend += monto;
+            else egresos += monto;
+            egPorDia[raw] = (egPorDia[raw]||0) + monto;
+            egresosList.push({ fecha, motivo, monto: monto.toLocaleString() });
+          }
         });
 
-        const saldo = ingresos - egresos;
-        document.getElementById("resumen").innerHTML = `
-          <strong>✅ Ingresos:</strong> ${ingresos.toLocaleString()} Gs<br>
-          <strong>❌ Egresos:</strong> ${egresos.toLocaleString()} Gs<br>
-          <strong>💰 Saldo Total:</strong> ${saldo.toLocaleString()} Gs
-        `;
+        // Actualizar tarjetas
+        document.getElementById('saldoRealAmount').textContent  =
+          `${(ingresos-egresos).toLocaleString()} Gs`;
+        document.getElementById('saldoIngresoText').textContent =
+          `+ ${ingresos.toLocaleString()} Gs`;
+        document.getElementById('saldoEgresoText').textContent =
+          `– ${egresos.toLocaleString()} Gs`;
+
+        document.getElementById('tarjetaCreditoAmount').textContent =
+          `${(spend-pay).toLocaleString()} Gs`;
+        document.getElementById('tarjetaSpend').textContent =
+          `– ${spend.toLocaleString()} Gs`;
+        document.getElementById('tarjetaPay').textContent =
+          `+ ${pay.toLocaleString()} Gs`;
+
+        // Egresos Diarios gráfico
+        document.getElementById('egTotal').textContent =
+          `${egresos.toLocaleString()} Gs`;
+        const dias = Object.keys(egPorDia)
+                        .sort((a,b)=> new Date(b)-new Date(a))
+                        .slice(0,7);
+        const valores = dias.map(d => egPorDia[d]);
+        const max = Math.max(...valores,1);
+        const bars = document.getElementById('egChartBars');
+        bars.innerHTML = '';
+        valores.forEach(v => {
+          const pct = Math.round(v/max*100);
+          const outer = document.createElement('div');
+          outer.className = 'h-[40%] w-3 rounded-sm bg-indigo-500/30';
+          const inner = document.createElement('div');
+          inner.style.height = `${pct}%`;
+          inner.className = 'w-full rounded-sm bg-indigo-500 transition-all duration-300';
+          outer.appendChild(inner);
+          bars.appendChild(outer);
+        });
+        document.getElementById('egMayor').textContent =
+          `${Math.max(...valores).toLocaleString()} Gs`;
+
+        // Modal: ordenar y llenar tabla
+        egresosList.sort((a,b) =>
+          new Date(b.fecha.split(' ')[0].split('/').reverse().join('-'))
+          - new Date(a.fecha.split(' ')[0].split('/').reverse().join('-'))
+        );
+        openModal.addEventListener('click', () => {
+          bodyTable.innerHTML = '';
+          egresosList.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.fecha}</td>
+              <td>${item.motivo}</td>
+              <td>${item.monto} Gs</td>
+            `;
+            bodyTable.appendChild(tr);
+          });
+        });
       })
-      .catch(err => {
-        console.error("Error al cargar datos:", err);
-        document.getElementById("resumen").textContent = "⚠️ Error al obtener la información.";
-      });
+      .catch(err => console.error('Error al cargar datos:', err));
   </script>
 </body>
 </html>
