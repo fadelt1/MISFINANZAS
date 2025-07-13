@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control de Finanzas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    #resumen {
+      margin-bottom: 20px;
+      font-size: 18px;
+      text-align: center;
+      background: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #e1e1e1;
+      text-align: center;
+    }
+    th {
+      background-color: #ecf0f1;
+      font-weight: 600;
+    }
+    .ingreso {
+      color: green;
+      font-weight: bold;
+    }
+    .egreso {
+      color: red;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 24px; }
+      table, th, td { font-size: 14px; }
+      #resumen { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Control de Finanzas Personales</h1>
+  <div id="resumen">Cargando datos financieros...</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Tipo</th>
+        <th>Monto (Gs)</th>
+        <th>Cuenta</th>
+        <th>Motivo</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEWn5bk1glejfurEQvECNJt3NYpSmDbwjkgRhK6SRJm6BEbJ3a4swG8LvS9YE9qfdT/exec";
+
+    fetch(API_URL)
+      .then(res => res.ok ? res.json() : Promise.reject(res.status))
+      .then(data => {
+        const tbody = document.querySelector("tbody");
+        let ingresos = 0, egresos = 0;
+
+        data.forEach(item => {
+          const tipo = item.tipo?.toUpperCase();
+          const monto = parseFloat(item.monto) || 0;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${item.fecha || '—'}</td>
+            <td class="${tipo === 'INGRESO' ? 'ingreso' : 'egreso'}">${tipo || '—'}</td>
+            <td>${monto.toLocaleString()}</td>
+            <td>${item.cuenta || '—'}</td>
+            <td>${item.motivo || '—'}</td>
+          `;
+          tbody.appendChild(tr);
+
+          if (tipo === 'INGRESO') ingresos += monto;
+          else if (tipo === 'EGRESO') egresos += monto;
+        });
+
+        const saldo = ingresos - egresos;
+        document.getElementById("resumen").innerHTML = `
+          <strong>✅ Ingresos:</strong> ${ingresos.toLocaleString()} Gs<br>
+          <strong>❌ Egresos:</strong> ${egresos.toLocaleString()} Gs<br>
+          <strong>💰 Saldo Total:</strong> ${saldo.toLocaleString()} Gs
+        `;
+      })
+      .catch(err => {
+        console.error("Error al cargar datos:", err);
+        document.getElementById("resumen").textContent = "⚠️ Error al obtener la información.";
+      });
+  </script>
+</body>
+</html>
