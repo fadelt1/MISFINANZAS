@@ -15,7 +15,7 @@
     /* Reset */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Temas */
+    /* Light / Dark temas */
     body.light { background: #f5f7fa; color: #2c3e50; }
     body.dark  { background: #0d1117; color: #c9d1d9; }
 
@@ -62,13 +62,18 @@
       transform: rotate(-45deg); top: 28px; left: 5px;
     }
 
-    /* Sidebar */
+    /* Sidebar oculto por defecto */
     .sidebar {
-      position: fixed; top: 0; left: -240px;
+      position: fixed; top: 0; left: 0;
       width: 240px; height: 100%;
       padding: 80px 16px 16px;
-      background: #0d1117; transition: left 0.3s ease;
+      background: #0d1117;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
       z-index: 800;
+    }
+    .sidebar.open {
+      transform: translateX(0);
     }
     .sidebar .input {
       display: flex; flex-direction: column; gap: 8px;
@@ -107,7 +112,7 @@
       justify-content: center; margin-bottom: 30px;
     }
 
-    /* Finmate Cards (diseño original) */
+    /* Tarjetas Finmate (diseño original) */
     .finmate-card {
       background: linear-gradient(145deg,#1a1a1f,#0e0e10);
       border: 1px solid rgba(255,255,255,0.05);
@@ -120,7 +125,7 @@
       color: #b0b0b0; font-size: 0.9rem; margin-bottom: 5px;
     }
     .finmate-card-amount {
-      color: #f5f5f5; font-size: 1.8rem; font-weight: 600;
+      color: #f5f7f5; font-size: 1.8rem; font-weight: 600;
       margin: 0;
     }
     .finmate-card-summary {
@@ -164,7 +169,7 @@
     @media (max-width: 640px) {
       .cards { flex-direction: column; align-items: center; }
       .finmate-card, .group { width: 100% !important; }
-      .sidebar { padding: 80px 8px 8px; width: 100%; }
+      .sidebar { padding: 80px 8px 8px; }
       header { justify-content: space-between; }
     }
   </style>
@@ -295,9 +300,7 @@
       </div>
       <div style="max-height:70vh;overflow-y:auto; margin-top:16px;">
         <table class="egresos-table">
-          <thead>
-            <tr><th>Fecha</th><th>Motivo</th><th>Monto</th></tr>
-          </thead>
+          <thead><tr><th>Fecha</th><th>Motivo</th><th>Monto</th></tr></thead>
           <tbody id="modalTableBody"></tbody>
         </table>
       </div>
@@ -305,7 +308,7 @@
   </div>
 
   <script>
-    // Formatea raw → "dd/mm/yyyy hh:mm"
+    // Formateo fecha → "dd/mm/yyyy hh:mm"
     function formatDateTime(raw) {
       const d = new Date(raw);
       if (isNaN(d)) return raw;
@@ -322,12 +325,16 @@
     const sidebar = document.getElementById('sidebar');
     const main    = document.getElementById('main');
     burger.addEventListener('change', () => {
-      const open = burger.checked;
-      sidebar.style.left    = open ? '0'    : '-240px';
-      main.style.marginLeft = open ? '240px': '0';
+      if (burger.checked) {
+        sidebar.classList.add('open');
+        main.style.marginLeft = '240px';
+      } else {
+        sidebar.classList.remove('open');
+        main.style.marginLeft = '0';
+      }
     });
 
-    // Dark mode persistence
+    // Dark mode
     const darkToggle = document.getElementById('darkToggle');
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.body.classList.replace('light','dark');
@@ -348,49 +355,48 @@
     openModal.addEventListener('click', () => modal.classList.add('active'));
     closeModal.addEventListener('click', () => modal.classList.remove('active'));
 
-    // Fetch & render data
+    // Fetch & render
     const API_URL = 'https://script.google.com/macros/s/AKfycbwXbvWQJNLwt7ebZGb0NbqJ3uoA3MhYKGg3ggUxJyxrS623gWq-Z3HuJUkNB06GQa7K/exec';
     let egresosList = [];
     fetch(API_URL)
       .then(res => res.ok ? res.json() : Promise.reject(res.status))
       .then(data => {
-        let ingresos = 0, egresos = 0;
+        let ingresos=0, egresos=0;
         const egPorDia = {};
-
         data.forEach(item => {
           const tipo   = (item['TIPO DE MOVIMIENTO']||'').toUpperCase();
-          const monto  = parseFloat(item['MONTO EN GS']) || 0;
+          const monto  = parseFloat(item['MONTO EN GS'])||0;
           const cuenta = (item['CUENTA']||'').toUpperCase();
           const motivo = (item['MOTIVO']||'').toUpperCase();
-          const raw    = item['Marca temporal'] || '';
+          const raw    = item['Marca temporal']||'';
           const fecha  = formatDateTime(raw);
-
-          if (tipo === 'INGRESO') {
-            ingresos += monto;
-          } else if (tipo === 'EGRESO') {
-            if (cuenta !== 'UENO CREDITO') egresos += monto;
-            egPorDia[raw] = (egPorDia[raw] || 0) + monto;
+          if (tipo==='INGRESO') ingresos += monto;
+          else if (tipo==='EGRESO') {
+            if (cuenta!=='UENO CREDITO') egresos += monto;
+            egPorDia[raw] = (egPorDia[raw]||0) + monto;
             egresosList.push({ fecha, motivo, monto: monto.toLocaleString() });
           }
         });
 
-        // Actualizar tarjetas Finmate
-        document.getElementById('saldoRealAmount').textContent  = `${(ingresos - egresos).toLocaleString()} Gs`;
-        document.getElementById('saldoIngresoText').textContent = `+ ${ingresos.toLocaleString()} Gs`;
-        document.getElementById('saldoEgresoText').textContent = `– ${egresos.toLocaleString()} Gs`;
-        // crédito no lo dividimos aquí (quedó como diseño original)
+        // Actualizar Finmate Cards
+        document.getElementById('saldoRealAmount').textContent  =
+          `${(ingresos-egresos).toLocaleString()} Gs`;
+        document.getElementById('saldoIngresoText').textContent =
+          `+ ${ingresos.toLocaleString()} Gs`;
+        document.getElementById('saldoEgresoText').textContent =
+          `– ${egresos.toLocaleString()} Gs`;
 
-        // Gráfico Egresos Diarios
+        // Egresos Diarios gráfico
         document.getElementById('egTotal').textContent = `${egresos.toLocaleString()} Gs`;
         const dias    = Object.keys(egPorDia)
-                             .sort((a,b)=> new Date(b) - new Date(a))
+                             .sort((a,b)=> new Date(b)-new Date(a))
                              .slice(0,7);
         const valores = dias.map(d => egPorDia[d]);
         const max     = Math.max(...valores,1);
         const bars    = document.getElementById('egChartBars');
         bars.innerHTML = '';
         valores.forEach(v => {
-          const pct = Math.round(v / max * 100);
+          const pct   = Math.round(v/max*100);
           const outer = document.createElement('div');
           outer.className = 'h-[40%] w-3 rounded-sm bg-indigo-500/30';
           const inner = document.createElement('div');
@@ -399,14 +405,14 @@
           outer.appendChild(inner);
           bars.appendChild(outer);
         });
-        document.getElementById('egMayor').textContent = `${Math.max(...valores).toLocaleString()} Gs`;
+        document.getElementById('egMayor').textContent =
+          `${Math.max(...valores).toLocaleString()} Gs`;
 
-        // Ordenar y preparar lista para modal
-        egresosList.sort((a,b) => {
-          const da = a.fecha.split(' ')[0].split('/').reverse().join('-');
-          const db = b.fecha.split(' ')[0].split('/').reverse().join('-');
-          return new Date(db) - new Date(da);
-        });
+        // Ordenar y llenar tabla modal
+        egresosList.sort((a,b)=>
+          new Date(b.fecha.split(' ')[0].split('/').reverse().join('-')) -
+          new Date(a.fecha.split(' ')[0].split('/').reverse().join('-'))
+        );
         openModal.addEventListener('click', () => {
           bodyTable.innerHTML = '';
           egresosList.forEach(item => {
